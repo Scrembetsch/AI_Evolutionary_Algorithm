@@ -9,22 +9,26 @@
 #include <list>
 #include <queue>
 #include <ctime>
+#include <random>
 
 using namespace std;
 
+std::mt19937 rng(177013);
+
+const int chessBoardSize = 3; // TODO: Read from Console
+int initialPopulationCount = 10;
+
 typedef struct
 {
-    string arrangement;
+    int arrangement[chessBoardSize * chessBoardSize];
     int cost;
 } individual;
 
 typedef vector<individual*> population_type;
 
 population_type population;
-int chessBoardSize;
-int initialPopulationCount = 10;
 
-int fitnessValue(string arrangement)
+int fitnessValue(int arrangement[])
 {
     int fitness = (chessBoardSize * (chessBoardSize - 1)) / 2;          //initialize to a solution
     //removing pairs that lie on the same row and on the same diagonal
@@ -41,23 +45,39 @@ individual* createNode()
     return newNode;
 }
 
+// Returns a random value between Min and Max
+int random(int min, int max)
+{
+    // Mersenne-Twister
+    double r = (double)max - (double)min + 1;
+    return min + (int)(r * rng() / (std::mt19937::max() + 1.0));
+}
+
 void generatePopulation()
 {
-    string sampleArrangement = "";
+    const int arraySize = chessBoardSize * chessBoardSize;
+    int sampleArrangement[arraySize];
     individual* temp;
-    for (int i = 1; i <= chessBoardSize; i++)
+    for (int i = 0; i < arraySize; i++)
     {
-        ostringstream ostr;
-        ostr << i;
-        sampleArrangement += ostr.str();
+        sampleArrangement[i] = i + 1;
     }
 
-    //adds entries to population list
+    // adds entries to population list
     for (int i = 0; i < initialPopulationCount; i++)
     {
-        random_shuffle(sampleArrangement.begin(), sampleArrangement.end());
+        // Permute In Place (Random Shuffle)
+        for (int j = 0; j < arraySize; j++)
+        {
+            std::swap(sampleArrangement[j], sampleArrangement[random(j, arraySize-1)]);
+        }
         temp = createNode();
-        temp->arrangement = sampleArrangement;
+        for (int j = 0; j < arraySize; j++)
+        {
+            temp->arrangement[j] = sampleArrangement[j];
+            //cout << sampleArrangement[j] << " ";
+        }
+        //cout << std::endl;
         temp->cost = fitnessValue(sampleArrangement);
         population.push_back(temp);
     }
@@ -68,7 +88,7 @@ individual* reproduce(individual* x, individual* y)
     individual* child = createNode();
     int n = chessBoardSize;
     int c = rand() % n;
-    child->arrangement = (x->arrangement).substr(0, c) + (y->arrangement).substr(c, n - c + 1);
+    // child->arrangement = (x->arrangement).substr(0, c) + (y->arrangement).substr(c, n - c + 1);
     child->cost = fitnessValue(child->arrangement);
     return child;
 }
@@ -83,7 +103,7 @@ individual* mutate(individual* child)
 
 int randomSelection()
 {
-    int randomPos = rand() % population.size() % 2;
+    int randomPos = random(0, population.size()) % 2;  // TODO: Adjust
     return randomPos;
 }
 
@@ -137,27 +157,29 @@ individual* GA()
 
 void initialize()
 {
-    srand(time(0));     //to ensure perfect randomness
-    chessBoardSize = 8;
+    srand(time(0));     // no longer neeeded -> use custom random() function instead of rand()
+    //chessBoardSize = 3; // TODO: Read from Commandline
 }
 
 int main()
 {
     initialize();
     clock_t start_time, end_time;           //to keep a track of the time spent in computing
-    map<string, int> solutionsFound;
+    //map<string, int> solutionsFound;
     int maxSolutions = 92, numFound = 0;       //already known that 92 solutions exist for 8 Queen Problem!
     start_time = clock();
     cout << "*Returns the column number corresponding to the row at the index*" << endl << endl;
     while (numFound != maxSolutions)
     {
         generatePopulation();
+        cout << "Generated Population successfully." << endl;
         individual* solution = GA();
-        if (!solutionsFound[solution->arrangement])
-        {
-            solutionsFound[solution->arrangement] = 1;
-            cout << "Possible Solution #" << (++numFound) << ":\t" << solution->arrangement << endl;
-        }
+        // TODO: Print Solutions
+        //if (!solutionsFound[solution->arrangement])
+        //{
+        //    solutionsFound[solution->arrangement] = 1;
+        //    cout << "Possible Solution #" << (++numFound) << ":\t" << solution->arrangement << endl;
+        //}
     }
     end_time = clock();
 
