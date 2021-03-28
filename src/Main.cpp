@@ -45,7 +45,7 @@ individual* createNode()
     return newNode;
 }
 
-// Returns a random value between Min and Max
+// Returns a random value between Min and Max (both inclusive)
 int random(int min, int max)
 {
     // Mersenne-Twister
@@ -83,11 +83,11 @@ void generatePopulation()
     }
 }
 
-individual* reproduce(individual* x, individual* y)
+individual* reproduce(individual* /*x*/, individual* /*y*/)
 {
     individual* child = createNode();
-    int n = chessBoardSize;
-    int c = rand() % n;
+    //int n = chessBoardSize;
+    //int c = rand() % n;
     // child->arrangement = (x->arrangement).substr(0, c) + (y->arrangement).substr(c, n - c + 1);
     child->cost = fitnessValue(child->arrangement);
     return child;
@@ -95,9 +95,9 @@ individual* reproduce(individual* x, individual* y)
 
 individual* mutate(individual* child)
 {
-    int randomQueen = rand() % (chessBoardSize)+1;
-    int randomPosition = rand() % (chessBoardSize)+1;
-    child->arrangement[randomQueen] = randomPosition + 48;
+    int randomQueen = random(0, chessBoardSize);
+    int randomPosition = random(0, chessBoardSize);
+    child->arrangement[randomQueen] = randomPosition + 48; //48?
     return child;
 }
 
@@ -121,10 +121,13 @@ bool comp(individual* a, individual* b)
 
 individual* GA()
 {
-    int randomNum1, randomNum2;
-    individual* individualX, * individualY, * child;
-    child = nullptr;
-    bool found = 0;
+    int randomNum1 = 0;
+    int randomNum2 = 0;
+    individual* individualX = nullptr;
+    individual* individualY = nullptr;
+    individual* child = nullptr;
+
+    bool found = false;
     while (!found)
     {
         population_type new_population;
@@ -140,7 +143,7 @@ individual* GA()
 
             child = reproduce(individualX, individualY);
 
-            if (rand() % 2 == 0)     //random probability
+            if (random(0, 1))     //random probability
                 child = mutate(child);
 
             if (isFit(child))
@@ -173,7 +176,7 @@ int main()
     {
         generatePopulation();
         cout << "Generated Population successfully." << endl;
-        individual* solution = GA();
+        /*individual* solution = */GA();
         // TODO: Print Solutions
         //if (!solutionsFound[solution->arrangement])
         //{
