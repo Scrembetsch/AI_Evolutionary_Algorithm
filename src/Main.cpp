@@ -16,6 +16,7 @@ using namespace std;
 std::mt19937 rng(177013);
 
 const int chessBoardSize = 3; // TODO: Read from Console
+const int fieldSize = chessBoardSize * chessBoardSize; // TODO: Please Add after chessBoardSize
 int initialPopulationCount = 10;
 
 typedef struct
@@ -83,14 +84,69 @@ void generatePopulation()
     }
 }
 
-individual* reproduce(individual* /*x*/, individual* /*y*/)
+int* createInversionSequence(individual* individual)
+{
+    int* inversionSequence = new int[fieldSize];
+
+    for (int i = 0; i < fieldSize; i++)
+    {
+        int counter = 0;
+
+        for (int value : individual->arrangement)
+        {
+            if (value == i + 1)
+                break;
+
+            if (value > i + 1)
+                counter++;
+        }
+        inversionSequence[i] = counter;
+    }
+
+    return inversionSequence;
+}
+
+individual* reproduce(individual* parent1, individual* parent2)
 {
     individual* child = createNode();
+    int childArrangement[chessBoardSize * chessBoardSize];
+
+    int* inversionSequenceP1;
+    inversionSequenceP1 = createInversionSequence(parent1);
+
+    for (int i = 0; i < fieldSize; i++)
+    {
+        std::cout << inversionSequenceP1[i] << " | ";
+    }
+    std::cout << std::endl;
+
+    int* inversionSequenceP2;
+    inversionSequenceP2 = createInversionSequence(parent2);
+
+    for (int i = 0; i < fieldSize; i++)
+    {
+        std::cout << inversionSequenceP2[i] << " | ";
+    }
+    std::cout << std::endl;
+
+    int crossoverPoint = 4 + 1; //random(2, 6) + 1;
+    int* inversionSequenceChild = new int[fieldSize];
+
+    std::copy(inversionSequenceP1, inversionSequenceP1 + crossoverPoint, inversionSequenceChild);
+    std::copy(inversionSequenceP2 + crossoverPoint, inversionSequenceP2 + fieldSize, inversionSequenceChild + crossoverPoint );
+
+    for (int i = 0; i < fieldSize; i++)
+    {
+        std::cout << inversionSequenceChild[i] << " | ";
+    }
+
     //int n = chessBoardSize;
     //int c = rand() % n;
     // child->arrangement = (x->arrangement).substr(0, c) + (y->arrangement).substr(c, n - c + 1);
-    child->cost = fitnessValue(child->arrangement);
-    return child;
+    //child->cost = fitnessValue(child->arrangement);
+    //return child;
+
+    return nullptr;
 }
 
 individual* mutate(individual* child)
@@ -166,6 +222,31 @@ void initialize()
 
 int main()
 {
+    ////Reproduction Testing Stuff
+    //individual* Testsubject1 = new individual;;
+    //individual* Testsubject2 = new individual;;
+
+    //for (int i = 0; i < fieldSize; i++)
+    //{
+    //    Testsubject1->arrangement[i] = i + 1;
+    //    Testsubject2->arrangement[i] = 9 - i;
+    //}
+    //
+    //for (int value : Testsubject1->arrangement)
+    //{
+    //    std::cout << value << " | ";
+    //}
+    //std::cout << std::endl;
+
+    //for (int value : Testsubject2->arrangement)
+    //{
+    //    std::cout << value << " | ";
+    //}
+    //std::cout << std::endl;
+
+    //reproduce(Testsubject1, Testsubject2);
+    ////Reproduction Testing Stuff End
+
     initialize();
     clock_t start_time, end_time;           //to keep a track of the time spent in computing
     //map<string, int> solutionsFound;
