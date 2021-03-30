@@ -249,21 +249,34 @@ int main()
 
     initialize();
     clock_t start_time, end_time;           //to keep a track of the time spent in computing
-    //map<string, int> solutionsFound;
+    map<string, bool> solutionsFound;
     int maxSolutions = 92, numFound = 0;       //already known that 92 solutions exist for 8 Queen Problem!
     start_time = clock();
-    cout << "*Returns the column number corresponding to the row at the index*" << endl << endl;
+    std::cout << "*Returns the column number corresponding to the row at the index*" << std::endl << std::endl;
     while (numFound != maxSolutions)
     {
         generatePopulation();
-        cout << "Generated Population successfully." << endl;
-        /*individual* solution = */GA();
-        // TODO: Print Solutions
-        //if (!solutionsFound[solution->arrangement])
-        //{
-        //    solutionsFound[solution->arrangement] = 1;
-        //    cout << "Possible Solution #" << (++numFound) << ":\t" << solution->arrangement << endl;
-        //}
+        std::cout << "Generated Population successfully." << std::endl;
+        individual* solution = GA();
+        string hash = ""; //generate string from solution, to save it in a map
+        for (int i = 0; i < chessBoardSize * chessBoardSize; i++)
+        {
+            hash = hash + std::to_string(solution->arrangement[i]);
+        }
+        
+        if (!solutionsFound[hash])
+        {
+            solutionsFound[hash] = true;
+            std::cout << "Possible Solution #" << (++numFound) << ":\t" << std::endl;
+            for (int x = 0; x < chessBoardSize; x++)
+            {
+                for (int y = 0; y < chessBoardSize; y++)
+                {
+                    std::cout << solution->arrangement[x * chessBoardSize + y] << "\t";
+                }
+                std::cout << std::endl;
+            }
+        }
     }
     end_time = clock();
 
