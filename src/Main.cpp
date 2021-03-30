@@ -269,12 +269,6 @@ individual* reproduce(individual* parent1, individual* parent2)
     delete[] inversionSequenceP2;
     delete[] inversionSequenceChild;
 
-    for (int i = 0; i < fieldSize; i++)
-    {
-        std::cout << child->arrangement[i] << " | ";
-    }
-    std::cout << std::endl;
-
     return child;
 }
 
