@@ -183,7 +183,7 @@ int* createInversionSequence(individual* individual)
     {
         int counter = 0;
 
-        for(int j=0; j<fieldSize; j++)
+        for(int j = 0; j < fieldSize; j++)
         {
             if (individual->arrangement[j] == i + 1)
                 break;
@@ -197,28 +197,65 @@ int* createInversionSequence(individual* individual)
     return inversionSequence;
 }
 
+int* recreateNumbers(int* inversionSequence)
+{
+    int* positions = new int[fieldSize];
+    int* square = new int[fieldSize];
+
+    for (int i = (fieldSize - 1); i >= 0; i--)
+    {
+        int additionValue = 1;
+        int currentValue = inversionSequence[i];
+        positions[i] = currentValue;
+
+        while (i + additionValue <= (fieldSize - 1))
+        {
+            if (positions[i + additionValue] >= positions[i])
+            {
+                positions[i + additionValue]++;
+            }
+
+            additionValue++;
+        }
+    }
+
+    for (int i = 0; i < fieldSize; i++)
+    {
+        int insertPosition = positions[i];
+        square[insertPosition] = (i + 1);
+    }
+
+    delete[] positions;
+
+    return square;
+}
+
+individual* mutate(individual* child)
+{
+    int pos1 = random(0, fieldSize - 1);
+    int pos2 = random(0, fieldSize - 1);
+
+    while (pos1 == pos2)
+    {
+        pos2 = random(0, fieldSize - 1);
+    }
+
+    int buffer = child->arrangement[pos2];
+    child->arrangement[pos2] = child->arrangement[pos1];
+    child->arrangement[pos1] = buffer;
+
+    return child;
+}
+
 individual* reproduce(individual* parent1, individual* parent2)
 {
     individual* child = createNode();
-    //int childArrangement[chessBoardSize * chessBoardSize]; //needs to be dynamically allocated and later deleted
 
     int* inversionSequenceP1;
     inversionSequenceP1 = createInversionSequence(parent1);
 
-    for (int i = 0; i < fieldSize; i++)
-    {
-        std::cout << inversionSequenceP1[i] << " | ";
-    }
-    std::cout << std::endl;
-
     int* inversionSequenceP2;
     inversionSequenceP2 = createInversionSequence(parent2);
-
-    for (int i = 0; i < fieldSize; i++)
-    {
-        std::cout << inversionSequenceP2[i] << " | ";
-    }
-    std::cout << std::endl;
 
     int crossoverPoint = 4 + 1; //random(2, 6) + 1;
     int* inversionSequenceChild = new int[fieldSize];
@@ -226,31 +263,24 @@ individual* reproduce(individual* parent1, individual* parent2)
     std::copy(inversionSequenceP1, inversionSequenceP1 + crossoverPoint, inversionSequenceChild);
     std::copy(inversionSequenceP2 + crossoverPoint, inversionSequenceP2 + fieldSize, inversionSequenceChild + crossoverPoint );
 
+    child->arrangement = recreateNumbers(inversionSequenceChild);
+
+    delete[] inversionSequenceP1;
+    delete[] inversionSequenceP2;
+    delete[] inversionSequenceChild;
+
     for (int i = 0; i < fieldSize; i++)
     {
-        std::cout << inversionSequenceChild[i] << " | ";
+        std::cout << child->arrangement[i] << " | ";
     }
+    std::cout << std::endl;
 
-    //int n = chessBoardSize;
-    //int c = rand() % n;
-    // child->arrangement = (x->arrangement).substr(0, c) + (y->arrangement).substr(c, n - c + 1);
-    //child->cost = fitnessValue(child->arrangement);
-    //return child;
-
-    return nullptr;
-}
-
-individual* mutate(individual* child)
-{
-    int randomQueen = random(0, chessBoardSize);
-    int randomPosition = random(0, chessBoardSize);
-    child->arrangement[randomQueen] = randomPosition + 48; //48?
     return child;
 }
 
 int randomSelection()
 {
-    int randomPos = random(0, population.size()) % 2;  // TODO: Adjust
+    int randomPos = random(0, population.size()) / 2;  // TODO: Adjust
     return randomPos;
 }
 
@@ -305,11 +335,11 @@ individual* GA()
     return child;
 }
 
-void initialize()
-{
-    srand(time(0));     // no longer neeeded -> use custom random() function instead of rand()
-    //chessBoardSize = 3; // TODO: Read from Commandline
-}
+//void initialize()
+//{
+//    srand(time(0));     // no longer neeeded -> use custom random() function instead of rand()
+//    //chessBoardSize = 3; // TODO: Read from Commandline
+//}
 
 char* getOption(char** start, char** end, const std::string& option)
 {
@@ -330,31 +360,6 @@ bool OptionExists(char** start, char** end, const std::string& option)
 
 int main(int argc, char** argv)
 {
-    ////Reproduction Testing Stuff
-    //individual* Testsubject1 = new individual;;
-    //individual* Testsubject2 = new individual;;
-
-    //for (int i = 0; i < fieldSize; i++)
-    //{
-    //    Testsubject1->arrangement[i] = i + 1;
-    //    Testsubject2->arrangement[i] = 9 - i;
-    //}
-    //
-    //for (int value : Testsubject1->arrangement)
-    //{
-    //    std::cout << value << " | ";
-    //}
-    //std::cout << std::endl;
-
-    //for (int value : Testsubject2->arrangement)
-    //{
-    //    std::cout << value << " | ";
-    //}
-    //std::cout << std::endl;
-
-    //reproduce(Testsubject1, Testsubject2);
-    ////Reproduction Testing Stuff End
-
     int maxSolutions = 5, numFound = 0;
 
     //input
@@ -372,10 +377,8 @@ int main(int argc, char** argv)
         maxSolutions = std::atoi(getOption(argv, argv + argc, "--num"));
     }
 
-
-
     //output
-    initialize();
+    //initialize();
     clock_t start_time, end_time;           //to keep a track of the time spent in computing
     map<string, bool> solutionsFound;
     start_time = clock();
