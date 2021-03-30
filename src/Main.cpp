@@ -54,12 +54,20 @@ typedef vector<individual*> population_type;
 
 population_type population;
 
+//simulation mode
 Mode simMode;
 
+//maximum power for multimagic square
+int P;
+//dimension within subsquare in composite square
+int n;
+//dimension of subsquares in composite square, m*m number of subsquares
+int m;
+
 //calculates fitness, low value is good
-int fitnessValue(int arrangement[])
+unsigned int fitnessValue(int arrangement[])
 {
-    int fitness = 0;
+    unsigned int fitness = 0;
 
     int magicValue = 0;
     int sum = 0;
@@ -67,7 +75,9 @@ int fitnessValue(int arrangement[])
     switch (simMode)
     {
     case ASSOCIATIVE:
+    {
         //check first for classic magic square
+        //calculate magic number 
         magicValue = chessBoardSize * (fieldSize + 1) / 2;
 
         //compute difference to magic number for each row
@@ -114,30 +124,215 @@ int fitnessValue(int arrangement[])
         {
             fitness += std::abs(arrangement[i] + arrangement[fieldSize - i - 1] - magicValue);
         }
-
+    }
         break;
     case COMPOSITE:
-        std::cout << "Composite fitness is not supported yet!" << std::endl;
-        fitness = INT32_MAX;
+    {
+        int* tempSub = new int[n * n];
+        int subMin;
+
+        //calculate magic number for subsquares
+        magicValue = n * (n * n + 1) / 2;
+
+        //calculate fitness of subsquares
+        //.--->x
+        //|012
+        //|345
+        //|678
+        //V y
+        for (int my = 0; my < m; my++)
+        {
+            for (int mx = 0; mx < m; mx++)
+            {
+                //write into temp array and find minimum value
+                subMin = INT32_MAX;
+
+                for (int ny = 0; ny < n; ny++)
+                {
+                    for (int nx = 0; nx < n; nx++)
+                    {
+                        tempSub[ny * n + nx] = arrangement[(my * n + ny) * (n * m) + (mx * n + nx)];
+                        subMin = std::min(subMin, tempSub[ny * n + nx]);
+                    }
+                }
+
+                //transform temp array to have lowest value = 1
+                for (int i = 0; i < n * n; i++)
+                {
+                    tempSub[n] -= subMin - 1;
+                }
+
+                //check subsquare for classic magic square
+                //compute difference to magic number for each row
+                for (int i = 0; i < n; i++)
+                {
+                    sum = 0;
+                    for (int j = 0; j < n; j++)
+                    {
+                        sum += arrangement[i * n + j];
+                    }
+                    fitness += std::abs(sum - magicValue);
+                }
+
+                //compute difference to magic number for each column
+                for (int i = 0; i < n; i++)
+                {
+                    sum = 0;
+                    for (int j = 0; j < n; j++)
+                    {
+                        sum += arrangement[j * n + i];
+                    }
+                    fitness += std::abs(sum - magicValue);
+                }
+
+                //compute difference to magic number for both diagonals
+                sum = 0;
+                for (int i = 0; i < n; i++)
+                {
+                    sum += arrangement[i * n + i];
+                }
+                fitness += std::abs(sum - magicValue);
+
+                sum = 0;
+                for (int i = 0; i < n; i++)
+                {
+                    sum += arrangement[i * n + (n - i - 1)];
+                }
+                fitness += std::abs(sum - magicValue);
+            }
+        }
+
+        //check full square for classic magic square
+        //calculate magic number 
+        magicValue = chessBoardSize * (fieldSize + 1) / 2;
+
+        //compute difference to magic number for each row
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum = 0;
+            for (int j = 0; j < chessBoardSize; j++)
+            {
+                sum += arrangement[i * chessBoardSize + j];
+            }
+            fitness += std::abs(sum - magicValue);
+        }
+
+        //compute difference to magic number for each column
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum = 0;
+            for (int j = 0; j < chessBoardSize; j++)
+            {
+                sum += arrangement[j * chessBoardSize + i];
+            }
+            fitness += std::abs(sum - magicValue);
+        }
+
+        //compute difference to magic number for both diagonals
+        sum = 0;
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum += arrangement[i * chessBoardSize + i];
+        }
+        fitness += std::abs(sum - magicValue);
+
+        sum = 0;
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum += arrangement[i * chessBoardSize + (chessBoardSize - i - 1)];
+        }
+        fitness += std::abs(sum - magicValue);
+
+        delete[] tempSub;
+        }
         break;
-    case MULTIMAGIC:
-        std::cout << "Multimagic fitness is not supported yet!" << std::endl;
-        fitness = INT32_MAX;
+    case MULTIMAGIC://CAUTION! will certainly cause overflow errors when testing with high orders and/or powers. (n*n)^P < int_max as a first estimate
+    {
+        int* temp = new int[fieldSize];
+        std::fill_n(temp, fieldSize, 1);
+
+        
+        for (int k = 1; k <= P; k++)
+        {
+            //calculate k-th power of array element, save in temp array
+            for (int i = 0; i < fieldSize; i++)
+            {
+                temp[i] *= arrangement[i];
+            }
+
+            //calculate magic number for current power, formula source: http://www.multimagie.com/English/Formula.htm
+            switch (k)
+            {
+            case 1:
+                magicValue = chessBoardSize * (fieldSize + 1) / 2;
+                break;
+            case 2:
+                magicValue = (chessBoardSize * (fieldSize + 1) / 2) * (2*fieldSize + 1) / 3;
+                break;
+            case 3:
+                magicValue = chessBoardSize * (chessBoardSize * (fieldSize + 1) / 2) * (chessBoardSize * (fieldSize + 1) / 2);
+                break;
+            case 4:
+                magicValue = ((chessBoardSize * (fieldSize + 1) / 2) * (2 * fieldSize + 1) / 3) * (6 * chessBoardSize * (chessBoardSize * (fieldSize + 1) / 2) - 1) / 5;
+                break;
+            case 5:
+                magicValue = (3 * chessBoardSize * (((chessBoardSize * (fieldSize + 1) / 2) * (2 * fieldSize + 1) / 3) * ((chessBoardSize * (fieldSize + 1) / 2) * (2 * fieldSize + 1) / 3)) - (chessBoardSize * (chessBoardSize * (fieldSize + 1) / 2) * (chessBoardSize * (fieldSize + 1) / 2))) / 2;
+                break;
+            default:
+                std::cout << "Unsupported power of " << k << " for multimagic square!" << std::endl;
+                break;
+            }
+
+            //compute difference to magic number for each row
+            for (int i = 0; i < chessBoardSize; i++)
+            {
+                sum = 0;
+                for (int j = 0; j < chessBoardSize; j++)
+                {
+                    sum += temp[i * chessBoardSize + j];
+                }
+                fitness += std::abs(sum - magicValue);
+            }
+
+            //compute difference to magic number for each column
+            for (int i = 0; i < chessBoardSize; i++)
+            {
+                sum = 0;
+                for (int j = 0; j < chessBoardSize; j++)
+                {
+                    sum += temp[j * chessBoardSize + i];
+                }
+                fitness += std::abs(sum - magicValue);
+            }
+
+            //compute difference to magic number for both diagonals
+            sum = 0;
+            for (int i = 0; i < chessBoardSize; i++)
+            {
+                sum += temp[i * chessBoardSize + i];
+            }
+            fitness += std::abs(sum - magicValue);
+
+            sum = 0;
+            for (int i = 0; i < chessBoardSize; i++)
+            {
+                sum += temp[i * chessBoardSize + (chessBoardSize - i - 1)];
+            }
+            fitness += std::abs(sum - magicValue);
+        }
+
+        delete[] temp;
+    }
         break;
     default:
+    {
         std::cout << "Unsupported mode!" << std::endl;
         fitness = INT32_MAX;
+    }
         break;
     }
 
     return fitness;
-    //int fitness = (chessBoardSize * (chessBoardSize - 1)) / 2;          //initialize to a solution
-    ////removing pairs that lie on the same row and on the same diagonal
-    //for (int i = 0; i < chessBoardSize; i++)
-    //    for (int j = i + 1; j < chessBoardSize; j++)
-    //        if ((arrangement[i] == arrangement[j]) || (i - arrangement[i] == j - arrangement[j]) || (i + arrangement[i] == j + arrangement[j]))
-    //            fitness--;
-    //return fitness;
 }
 
 individual* createNode()
@@ -400,6 +595,7 @@ bool OptionExists(char** start, char** end, const std::string& option)
 int main(int argc, char** argv)
 {
     int maxSolutions = 5, numFound = 0;
+    P = 1; //TODO: set correctly if mode is multimagic
 
     //input
     if (OptionExists(argv, argv + argc, "--size")) //size in 1 dimension
