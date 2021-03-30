@@ -15,8 +15,8 @@ using namespace std;
 
 std::mt19937 rng(177013);
 
-const int chessBoardSize = 3; // TODO: Read from Console
-const int fieldSize = chessBoardSize * chessBoardSize; // TODO: Please Add after chessBoardSize
+int chessBoardSize;
+int fieldSize;
 int initialPopulationCount = 10;
 
 enum Mode 
@@ -26,11 +26,17 @@ enum Mode
     MULTIMAGIC
 };
 
-typedef struct
+struct individual
 {
-    int arrangement[chessBoardSize * chessBoardSize];
+    int* arrangement;
     int cost;
-} individual;
+
+    ~individual()
+    {
+        delete[] arrangement;
+    }
+
+};
 
 typedef vector<individual*> population_type;
 
@@ -69,7 +75,7 @@ int random(int min, int max)
 void generatePopulation()
 {
     const int arraySize = chessBoardSize * chessBoardSize;
-    int sampleArrangement[arraySize];
+    int* sampleArrangement = new int[arraySize];
     individual* temp;
     for (int i = 0; i < arraySize; i++)
     {
@@ -94,6 +100,8 @@ void generatePopulation()
         temp->cost = fitnessValue(sampleArrangement);
         population.push_back(temp);
     }
+
+    delete[] sampleArrangement;
 }
 
 int* createInversionSequence(individual* individual)
@@ -104,12 +112,12 @@ int* createInversionSequence(individual* individual)
     {
         int counter = 0;
 
-        for (int value : individual->arrangement)
+        for(int j=0; j<fieldSize; j++)
         {
-            if (value == i + 1)
+            if (individual->arrangement[j] == i + 1)
                 break;
 
-            if (value > i + 1)
+            if (individual->arrangement[j] > i + 1)
                 counter++;
         }
         inversionSequence[i] = counter;
@@ -121,7 +129,7 @@ int* createInversionSequence(individual* individual)
 individual* reproduce(individual* parent1, individual* parent2)
 {
     individual* child = createNode();
-    int childArrangement[chessBoardSize * chessBoardSize];
+    //int childArrangement[chessBoardSize * chessBoardSize]; //needs to be dynamically allocated and later deleted
 
     int* inversionSequenceP1;
     inversionSequenceP1 = createInversionSequence(parent1);
@@ -232,7 +240,24 @@ void initialize()
     //chessBoardSize = 3; // TODO: Read from Commandline
 }
 
-int main()
+char* getOption(char** start, char** end, const std::string& option)
+{
+    char** iterator = std::find(start, end, option);
+
+    if (iterator != end && ++iterator != end)
+    {
+        return *iterator;
+    }
+    return 0;
+
+}
+
+bool OptionExists(char** start, char** end, const std::string& option)
+{
+    return std::find(start, end, option) != end;
+}
+
+int main(int argc, char** argv)
 {
     ////Reproduction Testing Stuff
     //individual* Testsubject1 = new individual;;
@@ -259,10 +284,29 @@ int main()
     //reproduce(Testsubject1, Testsubject2);
     ////Reproduction Testing Stuff End
 
+    int maxSolutions = 5, numFound = 0;
+
+    //input
+    if (OptionExists(argv, argv + argc, "--size")) //size in 1 dimension
+    {
+        chessBoardSize = std::atoi(getOption(argv, argv + argc, "--size"));
+        fieldSize = chessBoardSize * chessBoardSize;
+    }
+    if (OptionExists(argv, argv + argc, "--mode")) //mode of square (for more info see enum Mode)
+    {
+        simMode = static_cast<Mode>(std::atoi(getOption(argv, argv + argc, "--mode")));
+    }
+    if (OptionExists(argv, argv + argc, "--num")) //maximum number of solutions
+    {
+        maxSolutions = std::atoi(getOption(argv, argv + argc, "--num"));
+    }
+
+
+
+    //output
     initialize();
     clock_t start_time, end_time;           //to keep a track of the time spent in computing
     map<string, bool> solutionsFound;
-    int maxSolutions = 92, numFound = 0;       //already known that 92 solutions exist for 8 Queen Problem!
     start_time = clock();
     std::cout << "*Returns the column number corresponding to the row at the index*" << std::endl << std::endl;
     while (numFound != maxSolutions)
