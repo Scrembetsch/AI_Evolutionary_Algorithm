@@ -31,6 +31,18 @@ struct individual
     int* arrangement;
     int cost;
 
+    individual(){}
+
+    individual(individual& copy)
+    {
+        arrangement = new int[fieldSize];
+        for (int i = 0; i < fieldSize; i++)
+        {
+            arrangement[i] = copy.arrangement[i];
+        }
+        cost = copy.cost;
+    }
+
     ~individual()
     {
         delete[] arrangement;
@@ -257,12 +269,13 @@ individual* reproduce(individual* parent1, individual* parent2)
     int* inversionSequenceP2;
     inversionSequenceP2 = createInversionSequence(parent2);
 
-    int crossoverPoint = 4 + 1; //random(2, 6) + 1;
+    int crossoverPoint = random(2, 6) + 1;
     int* inversionSequenceChild = new int[fieldSize];
 
     std::copy(inversionSequenceP1, inversionSequenceP1 + crossoverPoint, inversionSequenceChild);
     std::copy(inversionSequenceP2 + crossoverPoint, inversionSequenceP2 + fieldSize, inversionSequenceChild + crossoverPoint );
 
+    delete[] child->arrangement;
     child->arrangement = recreateNumbers(inversionSequenceChild);
 
     delete[] inversionSequenceP1;
@@ -280,14 +293,14 @@ int randomSelection()
 
 bool isFit(individual* test)
 {
-    if (fitnessValue(test->arrangement) == 0)
+    if (test->cost == 0)
         return true;
     return false;
 }
 
 bool comp(individual* a, individual* b)
 {
-    return(a->cost > b->cost);
+    return(a->cost < b->cost);
 }
 
 individual* GA()
@@ -301,11 +314,12 @@ individual* GA()
     bool found = false;
     while (!found)
     {
-        population_type new_population;
-        for (unsigned int i = 0; i < population.size(); i++)
-        {
-            sort(population.begin(), population.end(), comp);
+        sort(population.begin(), population.end(), comp);
 
+        population_type new_population;
+        for (unsigned int i = 0; i < population.size()/2; i++)
+        {
+            new_population.push_back(new individual(*population[i]));
             randomNum1 = randomSelection();
             individualX = population[randomNum1];
 
@@ -317,14 +331,45 @@ individual* GA()
             if (random(0, 1))     //random probability
                 child = mutate(child);
 
-            if (isFit(child))
+            child->cost = fitnessValue(child->arrangement);
+
+            if (child->cost==0)
             {
                 found = 1;
+                while (population.size() > 0)
+                {
+                    delete population.back();
+                    population.pop_back();
+                }
+                population = new_population;
+                new_population.clear();
                 return child;
             }
             new_population.push_back(child);
         }
+        while (population.size() > 0)
+        {
+            delete population.back();
+            population.pop_back();
+        }
         population = new_population;
+        new_population.clear();
+
+        sort(population.begin(), population.end(), comp);
+
+        /*int numFound = 0;
+        for (auto pop : population)
+        {
+            std::cout << "Possible Solution #" << (++numFound) << ":\t" << std::endl;
+            for (int x = 0; x < chessBoardSize; x++)
+            {
+                for (int y = 0; y < chessBoardSize; y++)
+                {
+                    std::cout << pop->arrangement[x * chessBoardSize + y] << "\t";
+                }
+                std::cout << std::endl;
+            }
+        }*/
     }
     return child;
 }
@@ -380,7 +425,7 @@ int main(int argc, char** argv)
     while (numFound != maxSolutions)
     {
         generatePopulation();
-        std::cout << "Generated Population successfully." << std::endl;
+        //std::cout << "Generated Population successfully." << std::endl;
         individual* solution = GA();
         string hash = ""; //generate string from solution, to save it in a map
         for (int i = 0; i < chessBoardSize * chessBoardSize; i++)
@@ -400,6 +445,12 @@ int main(int argc, char** argv)
                 }
                 std::cout << std::endl;
             }
+        }
+        delete solution;
+        while (population.size() > 0)
+        {
+            delete population.back();
+            population.pop_back();
         }
     }
     end_time = clock();
