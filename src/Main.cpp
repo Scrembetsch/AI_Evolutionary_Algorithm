@@ -44,11 +44,81 @@ population_type population;
 
 Mode simMode;
 
-int fitnessValue(int arrangement[])//low value is good
+//calculates fitness, low value is good
+int fitnessValue(int arrangement[])
 {
+    int fitness = 0;
 
+    int magicValue = 0;
+    int sum = 0;
 
+    switch (simMode)
+    {
+    case ASSOCIATIVE:
+        //check first for classic magic square
+        magicValue = chessBoardSize * (fieldSize + 1) / 2;
 
+        //compute difference to magic number for each row
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum = 0;
+            for (int j = 0; j < chessBoardSize; j++)
+            {
+                sum += arrangement[i * chessBoardSize + j];
+            }
+            fitness += std::abs(sum - magicValue);
+        }
+
+        //compute difference to magic number for each column
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum = 0;
+            for (int j = 0; j < chessBoardSize; j++)
+            {
+                sum += arrangement[j * chessBoardSize + i];
+            }
+            fitness += std::abs(sum - magicValue);
+        }
+
+        //compute difference to magic number for both diagonals
+        sum = 0;
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum += arrangement[i * chessBoardSize + i];
+        }
+        fitness += std::abs(sum - magicValue);
+
+        sum = 0;
+        for (int i = 0; i < chessBoardSize; i++)
+        {
+            sum += arrangement[i * chessBoardSize + (chessBoardSize - i - 1)];
+        }
+        fitness += std::abs(sum - magicValue);
+
+        //check if square is associative
+        magicValue = fieldSize + 1;
+
+        for (int i = 0; i < std::ceil(fieldSize/2); i++)
+        {
+            fitness += std::abs(arrangement[i] + arrangement[fieldSize - i - 1] - magicValue);
+        }
+
+        break;
+    case COMPOSITE:
+        std::cout << "Composite fitness is not supported yet!" << std::endl;
+        fitness = INT32_MAX;
+        break;
+    case MULTIMAGIC:
+        std::cout << "Multimagic fitness is not supported yet!" << std::endl;
+        fitness = INT32_MAX;
+        break;
+    default:
+        std::cout << "Unsupported mode!" << std::endl;
+        fitness = INT32_MAX;
+        break;
+    }
+
+    return fitness;
     //int fitness = (chessBoardSize * (chessBoardSize - 1)) / 2;          //initialize to a solution
     ////removing pairs that lie on the same row and on the same diagonal
     //for (int i = 0; i < chessBoardSize; i++)
