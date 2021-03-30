@@ -131,6 +131,7 @@ int fitnessValue(int arrangement[])
 individual* createNode()
 {
     individual* newNode = new individual;
+    newNode->arrangement = new int[fieldSize];
     return newNode;
 }
 
@@ -255,7 +256,7 @@ int randomSelection()
 
 bool isFit(individual* test)
 {
-    if (fitnessValue(test->arrangement) == ((chessBoardSize * (chessBoardSize - 1)) / 2))
+    if (fitnessValue(test->arrangement) == 0)
         return true;
     return false;
 }
