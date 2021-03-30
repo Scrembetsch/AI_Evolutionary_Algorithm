@@ -19,6 +19,13 @@ const int chessBoardSize = 3; // TODO: Read from Console
 const int fieldSize = chessBoardSize * chessBoardSize; // TODO: Please Add after chessBoardSize
 int initialPopulationCount = 10;
 
+enum Mode 
+{
+    ASSOCIATIVE,
+    COMPOSITE,
+    MULTIMAGIC
+};
+
 typedef struct
 {
     int arrangement[chessBoardSize * chessBoardSize];
@@ -29,15 +36,20 @@ typedef vector<individual*> population_type;
 
 population_type population;
 
-int fitnessValue(int arrangement[])
+Mode simMode;
+
+int fitnessValue(int arrangement[])//low value is good
 {
-    int fitness = (chessBoardSize * (chessBoardSize - 1)) / 2;          //initialize to a solution
-    //removing pairs that lie on the same row and on the same diagonal
-    for (int i = 0; i < chessBoardSize; i++)
-        for (int j = i + 1; j < chessBoardSize; j++)
-            if ((arrangement[i] == arrangement[j]) || (i - arrangement[i] == j - arrangement[j]) || (i + arrangement[i] == j + arrangement[j]))
-                fitness--;
-    return fitness;
+
+
+
+    //int fitness = (chessBoardSize * (chessBoardSize - 1)) / 2;          //initialize to a solution
+    ////removing pairs that lie on the same row and on the same diagonal
+    //for (int i = 0; i < chessBoardSize; i++)
+    //    for (int j = i + 1; j < chessBoardSize; j++)
+    //        if ((arrangement[i] == arrangement[j]) || (i - arrangement[i] == j - arrangement[j]) || (i + arrangement[i] == j + arrangement[j]))
+    //            fitness--;
+    //return fitness;
 }
 
 individual* createNode()
