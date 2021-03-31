@@ -55,7 +55,7 @@ typedef vector<individual*> population_type;
 population_type population;
 
 //simulation mode
-Mode simMode;
+Mode simMode=Mode::ASSOCIATIVE;
 
 //maximum power for multimagic square
 int P;
@@ -595,13 +595,24 @@ bool OptionExists(char** start, char** end, const std::string& option)
 int main(int argc, char** argv)
 {
     int maxSolutions = 5, numFound = 0;
-    P = 1; //TODO: set correctly if mode is multimagic
 
     //input
     if (OptionExists(argv, argv + argc, "--size")) //size in 1 dimension
     {
         chessBoardSize = std::atoi(getOption(argv, argv + argc, "--size"));
         fieldSize = chessBoardSize * chessBoardSize;
+    }
+    if (OptionExists(argv, argv + argc, "--power")) //power for the multimagic square
+    {
+        P = std::atoi(getOption(argv, argv + argc, "--power"));
+    }
+    if (OptionExists(argv, argv + argc, "--n")) //n of composite magic square
+    {
+        n = std::atoi(getOption(argv, argv + argc, "--n"));
+    }
+    if (OptionExists(argv, argv + argc, "--m")) //m of composite magic square
+    {
+        m = std::atoi(getOption(argv, argv + argc, "--m"));
     }
     if (OptionExists(argv, argv + argc, "--mode")) //mode of square (for more info see enum Mode)
     {
