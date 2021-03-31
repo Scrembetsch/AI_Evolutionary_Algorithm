@@ -74,13 +74,14 @@ unsigned int fitnessValue(int arrangement[])
 
     switch (simMode)
     {
+    // Associative magic square
     case ASSOCIATIVE:
     {
-        //check first for classic magic square
-        //calculate magic number 
+        // Check first for classic magic square
+        // Calculate magic number 
         magicValue = chessBoardSize * (fieldSize + 1) / 2;
 
-        //compute difference to magic number for each row
+        // Compute difference to magic number for each row
         for (int i = 0; i < chessBoardSize; i++)
         {
             sum = 0;
@@ -91,7 +92,7 @@ unsigned int fitnessValue(int arrangement[])
             fitness += std::abs(sum - magicValue);
         }
 
-        //compute difference to magic number for each column
+        // Compute difference to magic number for each column
         for (int i = 0; i < chessBoardSize; i++)
         {
             sum = 0;
@@ -102,7 +103,7 @@ unsigned int fitnessValue(int arrangement[])
             fitness += std::abs(sum - magicValue);
         }
 
-        //compute difference to magic number for both diagonals
+        // Compute difference to magic number for both diagonals
         sum = 0;
         for (int i = 0; i < chessBoardSize; i++)
         {
@@ -117,7 +118,7 @@ unsigned int fitnessValue(int arrangement[])
         }
         fitness += std::abs(sum - magicValue);
 
-        //check if square is associative
+        // Check if square is associative
         magicValue = fieldSize + 1;
 
         for (int i = 0; i < std::ceil(fieldSize/2); i++)
@@ -126,25 +127,26 @@ unsigned int fitnessValue(int arrangement[])
         }
     }
         break;
+    // Composite magic square
     case COMPOSITE:
     {
         int* tempSub = new int[n * n];
         int subMin;
 
-        //calculate magic number for subsquares
+        // Calculate magic number for subsquares
         magicValue = n * (n * n + 1) / 2;
 
-        //calculate fitness of subsquares
-        //.--->x
-        //|012
-        //|345
-        //|678
-        //V y
+        // Calculate fitness of subsquares
+        // .--->x
+        // |012
+        // |345
+        // |678
+        // V y
         for (int my = 0; my < m; my++)
         {
             for (int mx = 0; mx < m; mx++)
             {
-                //write into temp array and find minimum value
+                // Write into temp array and find minimum value
                 subMin = INT32_MAX;
 
                 for (int ny = 0; ny < n; ny++)
@@ -156,57 +158,57 @@ unsigned int fitnessValue(int arrangement[])
                     }
                 }
 
-                //transform temp array to have lowest value = 1
+                // Transform temp array to have lowest value = 1
                 for (int i = 0; i < n * n; i++)
                 {
                     tempSub[n] -= subMin - 1;
                 }
 
-                //check subsquare for classic magic square
-                //compute difference to magic number for each row
+                // Check subsquare for classic magic square
+                // Compute difference to magic number for each row
                 for (int i = 0; i < n; i++)
                 {
                     sum = 0;
                     for (int j = 0; j < n; j++)
                     {
-                        sum += arrangement[i * n + j];
+                        sum += tempSub[i * n + j];
                     }
                     fitness += std::abs(sum - magicValue);
                 }
 
-                //compute difference to magic number for each column
+                // Compute difference to magic number for each column
                 for (int i = 0; i < n; i++)
                 {
                     sum = 0;
                     for (int j = 0; j < n; j++)
                     {
-                        sum += arrangement[j * n + i];
+                        sum += tempSub[j * n + i];
                     }
                     fitness += std::abs(sum - magicValue);
                 }
 
-                //compute difference to magic number for both diagonals
+                // Compute difference to magic number for both diagonals
                 sum = 0;
                 for (int i = 0; i < n; i++)
                 {
-                    sum += arrangement[i * n + i];
+                    sum += tempSub[i * n + i];
                 }
                 fitness += std::abs(sum - magicValue);
 
                 sum = 0;
                 for (int i = 0; i < n; i++)
                 {
-                    sum += arrangement[i * n + (n - i - 1)];
+                    sum += tempSub[i * n + (n - i - 1)];
                 }
                 fitness += std::abs(sum - magicValue);
             }
         }
 
-        //check full square for classic magic square
-        //calculate magic number 
+        // Check full square for classic magic square
+        // Calculate magic number 
         magicValue = chessBoardSize * (fieldSize + 1) / 2;
 
-        //compute difference to magic number for each row
+        // Compute difference to magic number for each row
         for (int i = 0; i < chessBoardSize; i++)
         {
             sum = 0;
@@ -217,7 +219,7 @@ unsigned int fitnessValue(int arrangement[])
             fitness += std::abs(sum - magicValue);
         }
 
-        //compute difference to magic number for each column
+        // Compute difference to magic number for each column
         for (int i = 0; i < chessBoardSize; i++)
         {
             sum = 0;
@@ -228,7 +230,7 @@ unsigned int fitnessValue(int arrangement[])
             fitness += std::abs(sum - magicValue);
         }
 
-        //compute difference to magic number for both diagonals
+        // Compute difference to magic number for both diagonals
         sum = 0;
         for (int i = 0; i < chessBoardSize; i++)
         {
@@ -246,7 +248,8 @@ unsigned int fitnessValue(int arrangement[])
         delete[] tempSub;
         }
         break;
-    case MULTIMAGIC://CAUTION! will certainly cause overflow errors when testing with high orders and/or powers. (n*n)^P < int_max as a first estimate
+    // Multimagic square
+    case MULTIMAGIC: // CAUTION! will certainly cause overflow errors when testing with high orders and/or powers. (n*n)^P < int_max as a first estimate
     {
         int* temp = new int[fieldSize];
         std::fill_n(temp, fieldSize, 1);
@@ -254,13 +257,13 @@ unsigned int fitnessValue(int arrangement[])
         
         for (int k = 1; k <= P; k++)
         {
-            //calculate k-th power of array element, save in temp array
+            // Calculate k-th power of array element, save in temp array
             for (int i = 0; i < fieldSize; i++)
             {
                 temp[i] *= arrangement[i];
             }
 
-            //calculate magic number for current power, formula source: http://www.multimagie.com/English/Formula.htm
+            // Calculate magic number for current power, formula source: http://www.multimagie.com/English/Formula.htm
             switch (k)
             {
             case 1:
@@ -283,7 +286,7 @@ unsigned int fitnessValue(int arrangement[])
                 break;
             }
 
-            //compute difference to magic number for each row
+            // Compute difference to magic number for each row
             for (int i = 0; i < chessBoardSize; i++)
             {
                 sum = 0;
@@ -294,7 +297,7 @@ unsigned int fitnessValue(int arrangement[])
                 fitness += std::abs(sum - magicValue);
             }
 
-            //compute difference to magic number for each column
+            // Compute difference to magic number for each column
             for (int i = 0; i < chessBoardSize; i++)
             {
                 sum = 0;
@@ -305,7 +308,7 @@ unsigned int fitnessValue(int arrangement[])
                 fitness += std::abs(sum - magicValue);
             }
 
-            //compute difference to magic number for both diagonals
+            // Compute difference to magic number for both diagonals
             sum = 0;
             for (int i = 0; i < chessBoardSize; i++)
             {
@@ -360,7 +363,7 @@ void generatePopulation()
         sampleArrangement[i] = i + 1;
     }
 
-    // adds entries to population list
+    // Adds entries to population list
     for (int i = 0; i < initialPopulationCount; i++)
     {
         // Permute In Place (Random Shuffle)
@@ -372,9 +375,7 @@ void generatePopulation()
         for (int j = 0; j < arraySize; j++)
         {
             temp->arrangement[j] = sampleArrangement[j];
-            //cout << sampleArrangement[j] << " ";
         }
-        //cout << std::endl;
         temp->cost = fitnessValue(sampleArrangement);
         population.push_back(temp);
     }
@@ -382,6 +383,9 @@ void generatePopulation()
     delete[] sampleArrangement;
 }
 
+// Creates an array in which the number at a certain index indicates 
+// how many numbers in the converted array (which were left of the number 
+// of the index position) were greater than the number itself, formula source: https://user.ceng.metu.edu.tr/~ucoluk/research/publications/tspnew.pdf  
 int* createInversionSequence(individual* individual)
 {
     int* inversionSequence = new int[fieldSize];
@@ -404,6 +408,7 @@ int* createInversionSequence(individual* individual)
     return inversionSequence;
 }
 
+// Inverse function of "createInversionSequence()"
 int* recreateNumbers(int* inversionSequence)
 {
     int* positions = new int[fieldSize];
@@ -439,6 +444,7 @@ int* recreateNumbers(int* inversionSequence)
 
 individual* mutate(individual* child)
 {
+    // Swap two random positions
     int pos1 = random(0, fieldSize - 1);
     int pos2 = random(0, fieldSize - 1);
 
@@ -458,23 +464,23 @@ individual* reproduce(individual* parent1, individual* parent2)
 {
     individual* child = createNode();
 
+    // Create a sequence for each parent
     int* inversionSequenceP1;
-    inversionSequenceP1 = createInversionSequence(parent1);
+    inversionSequenceP1 = createInversionSequence(parent1);     // "Encode the numbers"
 
     int* inversionSequenceP2;
-    inversionSequenceP2 = createInversionSequence(parent2);
+    inversionSequenceP2 = createInversionSequence(parent2);     // "Encode the numbers"
 
     int min = fieldSize * 0.2;
     int max = fieldSize * 0.8;
+    int crossoverPoint = random(min, max) + 1;  // Randomly select crossover point
 
-    int crossoverPoint = random(min, max) + 1;
     int* inversionSequenceChild = new int[fieldSize];
-
     std::copy(inversionSequenceP1, inversionSequenceP1 + crossoverPoint, inversionSequenceChild);
     std::copy(inversionSequenceP2 + crossoverPoint, inversionSequenceP2 + fieldSize, inversionSequenceChild + crossoverPoint );
 
     delete[] child->arrangement;
-    child->arrangement = recreateNumbers(inversionSequenceChild);
+    child->arrangement = recreateNumbers(inversionSequenceChild);   // "Decode the sequence to get the numbers"
 
     delete[] inversionSequenceP1;
     delete[] inversionSequenceP2;
@@ -485,7 +491,8 @@ individual* reproduce(individual* parent1, individual* parent2)
 
 int randomSelection()
 {
-    int randomPos = random(0, population.size()) / 2;  // TODO: Adjust
+    // Randomly select one from the best half
+    int randomPos = random(0, population.size()) / 2;
     return randomPos;
 }
 
@@ -512,26 +519,32 @@ individual* GA()
     bool found = false;
     while (!found)
     {
+        // Sort Population (best are at begin)
         sort(population.begin(), population.end(), comp);
 
         population_type new_population;
         for (unsigned int i = 0; i < population.size()/2; i++)
         {
             new_population.push_back(new individual(*population[i]));
+            // Select Parents
             randomNum1 = randomSelection();
             individualX = population[randomNum1];
 
             randomNum2 = randomSelection();
             individualY = population[randomNum2];
 
+            // Produce Child
             child = reproduce(individualX, individualY);
 
-            if (random(0, 1))     //random probability
+            if (random(0, 1))     // 50% chance to mutate
+            {
                 child = mutate(child);
+            }
 
+            // Calculate FitnessValue
             child->cost = fitnessValue(child->arrangement);
 
-            if (child->cost==0)
+            if (child->cost==0)     // found correct solution
             {
                 found = 1;
                 while (population.size() > 0)
@@ -545,6 +558,7 @@ individual* GA()
             }
             new_population.push_back(child);
         }
+        // Population is set to new generation
         while (population.size() > 0)
         {
             delete population.back();
@@ -552,31 +566,9 @@ individual* GA()
         }
         population = new_population;
         new_population.clear();
-
-        sort(population.begin(), population.end(), comp);
-
-        /*int numFound = 0;
-        for (auto pop : population)
-        {
-            std::cout << "Possible Solution #" << (++numFound) << ":\t" << std::endl;
-            for (int x = 0; x < chessBoardSize; x++)
-            {
-                for (int y = 0; y < chessBoardSize; y++)
-                {
-                    std::cout << pop->arrangement[x * chessBoardSize + y] << "\t";
-                }
-                std::cout << std::endl;
-            }
-        }*/
     }
     return child;
 }
-
-//void initialize()
-//{
-//    srand(time(0));     // no longer neeeded -> use custom random() function instead of rand()
-//    //chessBoardSize = 3; // TODO: Read from Commandline
-//}
 
 char* getOption(char** start, char** end, const std::string& option)
 {
@@ -598,6 +590,8 @@ bool OptionExists(char** start, char** end, const std::string& option)
 int main(int argc, char** argv)
 {
     int maxSolutions = 5, numFound = 0;
+
+    rng.seed(clock());  // Random Seed
 
     //input
     if (OptionExists(argv, argv + argc, "--size")) //size in 1 dimension
@@ -627,15 +621,13 @@ int main(int argc, char** argv)
     }
 
     //output
-    //initialize();
     clock_t start_time, end_time;           //to keep a track of the time spent in computing
     map<string, bool> solutionsFound;
     start_time = clock();
-    std::cout << "*Returns the column number corresponding to the row at the index*" << std::endl << std::endl;
+    std::cout << "Magic Square Solver" << std::endl << std::endl;
     while (numFound != maxSolutions)
     {
         generatePopulation();
-        //std::cout << "Generated Population successfully." << std::endl;
         individual* solution = GA();
         string hash = ""; //generate string from solution, to save it in a map
         for (int i = 0; i < chessBoardSize * chessBoardSize; i++)
@@ -643,6 +635,7 @@ int main(int argc, char** argv)
             hash = hash + std::to_string(solution->arrangement[i]);
         }
         
+        // Print solutions
         if (!solutionsFound[hash])
         {
             solutionsFound[hash] = true;
