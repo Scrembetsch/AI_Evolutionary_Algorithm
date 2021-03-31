@@ -464,7 +464,10 @@ individual* reproduce(individual* parent1, individual* parent2)
     int* inversionSequenceP2;
     inversionSequenceP2 = createInversionSequence(parent2);
 
-    int crossoverPoint = random(2, 6) + 1;
+    int min = fieldSize * 0.2;
+    int max = fieldSize * 0.8;
+
+    int crossoverPoint = random(min, max) + 1;
     int* inversionSequenceChild = new int[fieldSize];
 
     std::copy(inversionSequenceP1, inversionSequenceP1 + crossoverPoint, inversionSequenceChild);
