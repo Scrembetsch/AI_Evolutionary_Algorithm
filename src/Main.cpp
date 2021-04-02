@@ -540,7 +540,7 @@ individual* GA()
         }
 
         // If there were no improvemnts since x generations, this attempt dies
-        if (noImprovmentSince > 500)
+        if (noImprovmentSince > 1000)
         {
             //std::cout << "Go back to monkee!" << std::endl;
             return nullptr;
