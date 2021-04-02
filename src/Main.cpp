@@ -444,18 +444,22 @@ int* recreateNumbers(int* inversionSequence)
 
 individual* mutate(individual* child)
 {
-    // Swap two random positions
-    int pos1 = random(0, fieldSize - 1);
-    int pos2 = random(0, fieldSize - 1);
-
-    while (pos1 == pos2)
+    // Chance to mutate more cells than just 2
+    for (int i = 0; random(0, 100) < 50; i++)
     {
-        pos2 = random(0, fieldSize - 1);
-    }
+        // Swap to random cells
+        int pos1 = random(0, fieldSize - 1);
+        int pos2 = random(0, fieldSize - 1);
 
-    int buffer = child->arrangement[pos2];
-    child->arrangement[pos2] = child->arrangement[pos1];
-    child->arrangement[pos1] = buffer;
+        while (pos1 == pos2)
+        {
+            pos2 = random(0, fieldSize - 1);
+        }
+
+        int buffer = child->arrangement[pos2];
+        child->arrangement[pos2] = child->arrangement[pos1];
+        child->arrangement[pos1] = buffer;
+    }
 
     return child;
 }
@@ -517,10 +521,30 @@ individual* GA()
     individual* child = nullptr;
 
     bool found = false;
+    int bestCost = INT32_MAX;
+    int noImprovmentSince = 0;
     while (!found)
     {
         // Sort Population (best are at begin)
         sort(population.begin(), population.end(), comp);
+
+        // Check if generation is better or not
+        if (bestCost > population[0]->cost)
+        {
+            bestCost = population[0]->cost;
+            noImprovmentSince = 0;
+        }
+        else
+        {
+            noImprovmentSince++;
+        }
+
+        // If there were no improvemnts since x generations, this attempt dies
+        if (noImprovmentSince > 500)
+        {
+            //std::cout << "Go back to monkee!" << std::endl;
+            return nullptr;
+        }
 
         population_type new_population;
         for (unsigned int i = 0; i < population.size()/2; i++)
@@ -536,10 +560,8 @@ individual* GA()
             // Produce Child
             child = reproduce(individualX, individualY);
 
-            if (random(0, 1))     // 50% chance to mutate
-            {
-                child = mutate(child);
-            }
+            // Mutations chance is handled in mutate
+            child = mutate(child);
 
             // Calculate FitnessValue
             child->cost = fitnessValue(child->arrangement);
@@ -629,27 +651,30 @@ int main(int argc, char** argv)
     {
         generatePopulation();
         individual* solution = GA();
-        string hash = ""; //generate string from solution, to save it in a map
-        for (int i = 0; i < chessBoardSize * chessBoardSize; i++)
+        if (solution != nullptr)
         {
-            hash = hash + std::to_string(solution->arrangement[i]);
-        }
-        
-        // Print solutions
-        if (!solutionsFound[hash])
-        {
-            solutionsFound[hash] = true;
-            std::cout << "Possible Solution #" << (++numFound) << ":\t" << std::endl;
-            for (int x = 0; x < chessBoardSize; x++)
+            string hash = ""; //generate string from solution, to save it in a map
+            for (int i = 0; i < chessBoardSize * chessBoardSize; i++)
             {
-                for (int y = 0; y < chessBoardSize; y++)
-                {
-                    std::cout << solution->arrangement[x * chessBoardSize + y] << "\t";
-                }
-                std::cout << std::endl;
+                hash = hash + std::to_string(solution->arrangement[i]);
             }
+
+            // Print solutions
+            if (!solutionsFound[hash])
+            {
+                solutionsFound[hash] = true;
+                std::cout << "Possible Solution #" << (++numFound) << ":\t" << std::endl;
+                for (int x = 0; x < chessBoardSize; x++)
+                {
+                    for (int y = 0; y < chessBoardSize; y++)
+                    {
+                        std::cout << solution->arrangement[x * chessBoardSize + y] << "\t";
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            delete solution;
         }
-        delete solution;
         while (population.size() > 0)
         {
             delete population.back();
