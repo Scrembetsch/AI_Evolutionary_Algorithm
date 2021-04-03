@@ -1,4 +1,3 @@
-#include "Main.h"
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
@@ -540,7 +539,7 @@ individual* GA()
         }
 
         // If there were no improvemnts since x generations, this attempt dies
-        if (noImprovmentSince > 1000)
+        if (noImprovmentSince > 10000)
         {
             //std::cout << "Go back to monkee!" << std::endl;
             return nullptr;
